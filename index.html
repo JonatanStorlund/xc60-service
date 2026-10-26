@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>XC60 T5 Service Log</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a service-book page. Spec strip, odometer chart, stamped entries in order, then what is due at 160 000 km. */
+:root {
+  --bg: #eef1f4;
+  --paper: #ffffff;
+  --ink: #15202b;
+  --muted: #5a6773;
+  --line: #d6dde4;
+  --accent: #23507d;
+  --accent-soft: #e2eaf3;
+  --ok: #2c7a4b;
+  --ok-soft: #e1f1e7;
+  --warn: #a8640a;
+  --warn-soft: #f8ecd9;
+  --bad: #b02a22;
+  --bad-soft: #f7e1df;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151b; --paper: #18212a; --ink: #e6ebf0; --muted: #98a5b1; --line: #2b3742;
+    --accent: #8db8e3; --accent-soft: #1f3348;
+    --ok: #6cc893; --ok-soft: #173326; --warn: #e5a54a; --warn-soft: #3a2a12; --bad: #f08a82; --bad-soft: #3d1c1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151b; --paper: #18212a; --ink: #e6ebf0; --muted: #98a5b1; --line: #2b3742;
+  --accent: #8db8e3; --accent-soft: #1f3348;
+  --ok: #6cc893; --ok-soft: #173326; --warn: #e5a54a; --warn-soft: #3a2a12; --bad: #f08a82; --bad-soft: #3d1c1a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 700; letter-spacing: .01em; }
+h2 { font-size: 1.75rem; font-weight: 600; }
+h3 { font-size: 1.3rem; font-weight: 600; }
+p { margin: 0; }
+.eyebrow { font-family: var(--f-mono); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.mono, .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.lede { color: var(--muted); max-width: 62ch; }
+section { display: grid; gap: 16px; min-width: 0; }
+
+/* header */
+header { display: grid; gap: 14px; }
+.plates { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.plate { font-family: var(--f-mono); font-weight: 500; border: 2px solid var(--ink); border-radius: 4px; padding: 2px 10px; background: var(--paper); letter-spacing: .06em; }
+.plate small { font-size: .7rem; color: var(--muted); margin-right: 6px; letter-spacing: .1em; }
+.plate.old { border-color: var(--line); color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.spec div { background: var(--paper); padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+.spec dt { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.spec dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+
+/* status summary */
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.stat { padding: 14px 16px; border-radius: 8px; background: var(--paper); border: 1px solid var(--line); display: grid; gap: 4px; }
+.stat b { font-family: var(--f-display); font-size: 2rem; font-weight: 600; line-height: 1; }
+.stat span { color: var(--muted); font-size: .92rem; }
+.stat.bad { background: var(--bad-soft); border-color: transparent; }
+.stat.bad b { color: var(--bad); }
+.stat.warn { background: var(--warn-soft); border-color: transparent; }
+.stat.warn b { color: var(--warn); }
+
+/* chart */
+.chart { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.chart text { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); }
+
+/* entries */
+.log { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.entry { display: grid; grid-template-columns: 9.5rem 1fr; gap: 8px 24px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+.entry .when { display: grid; gap: 2px; align-content: start; }
+.entry .when .date { font-family: var(--f-display); font-size: 1.25rem; font-weight: 600; }
+.entry .when .km { font-family: var(--f-mono); color: var(--muted); font-size: .9rem; }
+.entry .body { display: grid; gap: 8px; min-width: 0; }
+.entry .head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+.entry .where { color: var(--muted); font-size: .95rem; }
+.entry ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 2px; }
+.entry .note { font-size: .92rem; color: var(--muted); }
+.entry.gap { background: repeating-linear-gradient(-45deg, var(--bad-soft) 0 10px, transparent 10px 20px); padding-inline: 12px; margin-inline: -12px; border-radius: 6px; }
+.entry.gap .date { color: var(--bad); }
+.entry.next .date { color: var(--accent); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.tag.miss { background: var(--bad-soft); color: var(--bad); }
+.tag.warn { background: var(--warn-soft); color: var(--warn); }
+.tag.info { background: var(--accent-soft); color: var(--accent); }
+
+/* tables */
+.tbl { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .95rem; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; }
+tfoot td { font-weight: 600; border-top: 2px solid var(--line); }
+.foot { color: var(--muted); font-size: .85rem; }
+
+@media (max-width: 620px) {
+  .entry { grid-template-columns: 1fr; }
+  .entry .when { grid-auto-flow: column; justify-content: start; gap: 12px; align-items: baseline; }
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Service history · as of October 2026</span>
+  <h1>Volvo XC60 T5 · 2018</h1>
+  <div class="plates">
+    <span class="plate"><small>FI</small>OZV-927</span>
+    <span class="plate old"><small>SE</small>GHX133</span>
+  </div>
+  <dl class="spec">
+    <div><dt>Model</dt><dd>XC60 T5 Business Advanced</dd></div>
+    <div><dt>Engine</dt><dd>B4204T26, 2.0 petrol turbo, 1969 cm³, 184 kW</dd></div>
+    <div><dt>Drive</dt><dd>Front-wheel drive, automatic</dd></div>
+    <div><dt>Options</dt><dd>No glass roof, no air suspension</dd></div>
+    <div><dt>Delivered new</dt><dd>8 May 2018, Bilia Malmö (SE)</dd></div>
+    <div><dt>Registered in Finland</dt><dd>10 Jul 2023</dd></div>
+    <div><dt>Service interval</dt><dd>30 000 km or 12 months</dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="summary">
+    <div class="stat"><b class="num">≈160 000</b><span>km on the odometer now</span></div>
+    <div class="stat"><b>7</b><span>services stamped in the book, 2019–2025</span></div>
+    <div class="stat bad"><b>1</b><span>annual service missing (due Feb 2026)</span></div>
+    <div class="stat warn"><b>6 of 7</b><span>services without a receipt</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Odometer over time</h2>
+  <div class="chart"><svg id="chart" viewBox="0 0 900 300" role="img" aria-label="Odometer readings at each service from 2018 to 2026"></svg></div>
+  <p class="foot">Each dot is a stamped service. The red band is the 2026 annual service that has no record. The square is the brake pad job in January 2026 (no stamp). The hollow dot is today's reading (about 160 000 km).</p>
+</section>
+
+<section>
+  <h2>Service book</h2>
+  <div class="log">
+
+    <article class="entry">
+      <div class="when"><span class="date">8 May 2018</span><span class="km">0 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Delivered new</h3><span class="where">Bilia Personbilar AB, Region Syd, Malmö</span></div>
+        <div class="tags"><span class="tag ok">warranty certificate</span></div>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">16 Apr 2019</span><span class="km">17 954 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Service 1 · Base service</h3><span class="where">Bilia, Malmö · work order <span class="mono">2115532</span></span></div>
+        <div class="tags"><span class="tag ok">book stamp</span><span class="tag miss">receipt missing</span></div>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">14 Apr 2020</span><span class="km">39 167 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Service 2 · Base service</h3><span class="where">Bilia Jägersro, Malmö · work order <span class="mono">7354366</span></span></div>
+        <div class="tags"><span class="tag ok">book stamp</span><span class="tag miss">receipt missing</span></div>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">24 Mar 2021</span><span class="km">62 188 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Service 3 · Maintenance service + interval addition</h3><span class="where">Bilia, Malmö · work order <span class="mono">8129830</span></span></div>
+        <div class="tags"><span class="tag ok">book stamp</span><span class="tag miss">receipt missing</span></div>
+        <p class="note">Stamped under "Maintenance service" and "Interval addition / Other". The book doesn't say what the addition was, and only the receipt would show it.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">2022</span><span class="km">88 045 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Service 4 · Base service</h3><span class="where">Bilia Jägersro, Malmö · work order <span class="mono">8843438</span></span></div>
+        <div class="tags"><span class="tag ok">book stamp</span><span class="tag miss">receipt missing</span><span class="tag warn">date unclear</span></div>
+        <p class="note">The handwritten date looks like 2022-03-07. Bilia's 2023 work order lists an earlier reading of 85 679 km on 2022-04-20, so this service was most likely done after 20 April 2022.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">16 Feb 2023</span><span class="km">108 976 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Service 5 · Volvo Original Service</h3><span class="where">Bilia Jägersro, Malmö · work order <span class="mono">9483346</span></span></div>
+        <div class="tags"><span class="tag ok">book stamp</span><span class="tag ok">work order</span><span class="tag ok">checklist</span><span class="tag ok">receipt 1 084 SEK</span></div>
+        <ul>
+          <li>Engine oil EDGE Professional V 0W-20, 5.6 L, oil filter insert and gasket</li>
+          <li>Cabin air filter replaced</li>
+          <li>Service 2.0 software update downloaded to control modules</li>
+          <li>Brake fluid tested and analysed: OK. Coolant protects to −40 °C</li>
+          <li>Wear and driveline checks, washer fluid topped up</li>
+          <li>Winter tyres 4 / 7 / 7 / 4 mm, pressure set to 2.8 bar</li>
+          <li>Wiper blades (refills and blade set) and engine bay wash</li>
+        </ul>
+        <p class="note">The receipt only charges for the wipers and the engine wash (1 084 SEK). The service lines have no price on it, so the service itself was probably covered by a service plan.</p>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">14 Feb 2024</span><span class="km">119 138 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Service 6 · 120 000 km service</h3><span class="where">Suomen Autohuolto Oy, Volvo service (FI) · work order <span class="mono">203111</span></span></div>
+        <div class="tags"><span class="tag ok">book stamp</span><span class="tag miss">receipt missing</span></div>
+        <ul>
+          <li>Timing belt and accessory drive belt replaced</li>
+          <li>Air conditioning service</li>
+          <li>Brake fluid replaced</li>
+          <li>Front brake pads replaced</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">20 Feb 2025</span><span class="km">135 972 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Service 7 · Annual service</h3><span class="where">Suomen Autohuolto Oy, Volvo service (FI) · work order <span class="mono">206279</span></span></div>
+        <div class="tags"><span class="tag ok">book stamp</span><span class="tag miss">receipt missing</span></div>
+        <ul>
+          <li>Transmission oil changed</li>
+          <li>Auxiliary (support) battery replaced</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="entry">
+      <div class="when"><span class="date">Jan 2026</span><span class="km">≈150 000 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Brake pads, front and rear</h3><span class="where">Steel Tooling Ab Oy / Mekonomen, Jakobstad</span></div>
+        <div class="tags"><span class="tag info">owner info</span><span class="tag miss">no stamp</span><span class="tag miss">receipt missing</span></div>
+        <p class="note">All pads replaced in January 2026 at about 150 000 km, according to the owner. No paperwork yet.</p>
+      </div>
+    </article>
+
+    <article class="entry gap">
+      <div class="when"><span class="date">Feb 2026</span><span class="km">~ 160 000 km due</span></div>
+      <div class="body">
+        <div class="head"><h3>Annual service · missing</h3></div>
+        <div class="tags"><span class="tag miss">no stamp</span><span class="tag miss">no receipt</span></div>
+        <p class="note">Due 12 months after service 7. By October 2026 it is about 20 months and 24 000 km since the last stamp. The 30 000 km limit falls at about 166 000 km.</p>
+      </div>
+    </article>
+
+    <article class="entry next">
+      <div class="when"><span class="date">15 Oct 2026</span><span class="km">≈160 000 km</span></div>
+      <div class="body">
+        <div class="head"><h3>Next service · proposal</h3><span class="where">Steel Tooling Ab Oy / Mekonomen, Jakobstad · work order <span class="mono">25302</span></span></div>
+        <div class="tags"><span class="tag info">quote, not done</span><span class="tag info">€600.41 incl. VAT</span></div>
+        <p class="note">Their proposal for the 180 000 km / 72 month service, plus the brake fluid and the spark plugs and air filter. Itemised below.</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section>
+  <h2>Steel Tooling proposal</h2>
+  <p class="lede">Work order 25302, 15 October 2026, made out to Kamux Suomi Oy. The odometer field was left at 0 km.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Item</th><th>Detail</th><th class="r">Qty</th><th class="r">€ incl. VAT</th></tr></thead>
+      <tbody>
+        <tr><td>Labour</td><td>180 000 km / 72 month service</td><td class="r num">1</td><td class="r num">156.96</td></tr>
+        <tr><td>Labour</td><td>Brake fluid, remote key batteries (every 24 months)</td><td class="r num">1</td><td class="r num">78.48</td></tr>
+        <tr><td>Labour</td><td>Spark plugs, air filter (every 60 000 km, whatever the age)</td><td class="r num">1</td><td class="r num">52.32</td></tr>
+        <tr><td>Engine oil</td><td>Ardeca Synth-V 0W-20, 5 L + 0.6 L</td><td class="r num">5.6 L</td><td class="r num">107.54</td></tr>
+        <tr><td>Sealing ring</td><td>Drain plug</td><td class="r num">1</td><td class="r num">0.22</td></tr>
+        <tr><td>Oil filter</td><td>P7152</td><td class="r num">1</td><td class="r num">17.10</td></tr>
+        <tr><td>Spark plugs</td><td>Denso Iridium</td><td class="r num">4</td><td class="r num">97.20</td></tr>
+        <tr><td>Air filter</td><td>Engine</td><td class="r num">1</td><td class="r num">27.74</td></tr>
+        <tr><td>Cabin filter</td><td>Hengst</td><td class="r num">1</td><td class="r num">38.53</td></tr>
+        <tr><td>Brake fluid</td><td>MPM DOT 5.1, 1 L</td><td class="r num">1</td><td class="r num">16.02</td></tr>
+        <tr><td>Supplies + environmental fee</td><td></td><td class="r num">2</td><td class="r num">8.30</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="3">Total (labour €287.76 + parts €312.65), VAT 25.5% €122.00</td><td class="r num">600.41</td></tr>
+      </tfoot>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Wear items at 160 000 km</h2>
+  <p class="lede">Based on the documents above only. "No record" means nothing on paper. The work may still have been done during a service whose receipt is missing.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Item</th><th>Last documented</th><th>Status</th><th>In proposal</th></tr></thead>
+      <tbody>
+        <tr><td>Engine oil + filter</td><td>Feb 2025 · 135 972 km (annual service)</td><td><span class="tag miss">overdue</span></td><td>Yes</td></tr>
+        <tr><td>Spark plugs</td><td>No record</td><td><span class="tag miss">no record</span></td><td>Yes</td></tr>
+        <tr><td>Engine air filter</td><td>No record</td><td><span class="tag miss">no record</span></td><td>Yes</td></tr>
+        <tr><td>Cabin air filter</td><td>Feb 2023 · 108 976 km</td><td><span class="tag warn">due</span></td><td>Yes</td></tr>
+        <tr><td>Brake fluid</td><td>Feb 2024 · 119 138 km</td><td><span class="tag warn">due (24 months)</span></td><td>Yes</td></tr>
+        <tr><td>Remote key batteries</td><td>No record</td><td><span class="tag warn">due (24 months)</span></td><td>Yes</td></tr>
+        <tr><td>Timing belt + accessory belt</td><td>Feb 2024 · 119 138 km</td><td><span class="tag ok">done</span></td><td>No</td></tr>
+        <tr><td>Brake pads, front + rear</td><td>Jan 2026 · ≈150 000 km (owner, no receipt). Front also Feb 2024 · 119 138 km</td><td><span class="tag ok">done</span></td><td>No</td></tr>
+        <tr><td>Transmission oil</td><td>Feb 2025 · 135 972 km</td><td><span class="tag ok">done</span></td><td>No</td></tr>
+        <tr><td>Auxiliary battery</td><td>Feb 2025 · 135 972 km</td><td><span class="tag ok">done</span></td><td>No</td></tr>
+        <tr><td>Air conditioning</td><td>Feb 2024 · 119 138 km</td><td><span class="tag ok">done</span></td><td>No</td></tr>
+        <tr><td>Coolant</td><td>Checked Feb 2023 (−40 °C), never replaced on paper</td><td><span class="tag warn">check</span></td><td>No</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Missing paperwork</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>What</th><th>Where to ask</th></tr></thead>
+      <tbody>
+        <tr><td>Receipts for services 1–4 (2019–2022), incl. what the 2021 interval addition was</td><td>Bilia, Malmö (SE), work orders 2115532, 7354366, 8129830, 8843438</td></tr>
+        <tr><td>Receipts for services 6–7 (2024–2025), incl. parts for the timing belt job</td><td>Suomen Autohuolto Oy, work orders 203111, 206279</td></tr>
+        <tr><td>Receipt for brake pads front + rear, January 2026 (≈150 000 km)</td><td>Steel Tooling / Mekonomen, Jakobstad</td></tr>
+        <tr><td>Annual service, February 2026</td><td>Not in the book. Either never done, or done somewhere that didn't stamp it</td></tr>
+        <tr><td>Exact date of service 4 (2022)</td><td>Bilia Jägersro, work order 8843438</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="foot">Sources: Volvo service book (warranty certificate, pages 6–8), Bilia work order, checklist and receipt from 16 Feb 2023, Steel Tooling work order 25302 from 15 Oct 2026.</p>
+</section>
+
+</div>
+
+<script>
+(function () {
+  var pts = [
+    ["2018-05-08", 0, "Delivered"],
+    ["2019-04-16", 17954, "S1"],
+    ["2020-04-14", 39167, "S2"],
+    ["2021-03-24", 62188, "S3"],
+    ["2022-05-01", 88045, "S4"],
+    ["2023-02-16", 108976, "S5"],
+    ["2024-02-14", 119138, "S6"],
+    ["2025-02-20", 135972, "S7"]
+  ];
+  var now = ["2026-10-15", 160000];
+  var W = 900, H = 300, L = 70, R = 24, T = 20, B = 36;
+  var t0 = Date.parse("2018-01-01"), t1 = Date.parse("2027-01-01");
+  var x = function (d) { return L + (Date.parse(d) - t0) / (t1 - t0) * (W - L - R); };
+  var y = function (k) { return H - B - k / 180000 * (H - T - B); };
+  var ns = "http://www.w3.org/2000/svg", svg = document.getElementById("chart");
+  function el(n, a, txt) { var e = document.createElementNS(ns, n); for (var k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; svg.appendChild(e); return e; }
+  var css = getComputedStyle(document.documentElement);
+  // missing service band: Feb 2026 to today
+  el("rect", { x: x("2026-02-20"), y: T, width: x(now[0]) - x("2026-02-20"), height: H - T - B, fill: "var(--bad-soft)" });
+  for (var k = 0; k <= 180000; k += 30000) {
+    el("line", { x1: L, x2: W - R, y1: y(k), y2: y(k), stroke: "var(--line)", "stroke-width": 1 });
+    el("text", { x: L - 8, y: y(k) + 4, "text-anchor": "end" }, k === 0 ? "0" : (k / 1000) + " 000");
+  }
+  for (var yr = 2018; yr <= 2026; yr++) {
+    el("text", { x: x(yr + "-07-01"), y: H - 12, "text-anchor": "middle" }, String(yr));
+    el("line", { x1: x(yr + "-01-01"), x2: x(yr + "-01-01"), y1: H - B, y2: H - B + 5, stroke: "var(--line)" });
+  }
+  var d = pts.map(function (p, i) { return (i ? "L" : "M") + x(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1); }).join(" ");
+  el("path", { d: d, fill: "none", stroke: "var(--accent)", "stroke-width": 2.5 });
+  el("path", { d: "M" + x(pts[7][0]) + " " + y(pts[7][1]) + " L" + x(now[0]) + " " + y(now[1]), fill: "none", stroke: "var(--bad)", "stroke-width": 2, "stroke-dasharray": "5 5" });
+  pts.forEach(function (p) {
+    el("circle", { cx: x(p[0]), cy: y(p[1]), r: 5, fill: "var(--accent)", stroke: "var(--paper)", "stroke-width": 2 });
+    if (p[2] !== "Delivered") el("text", { x: x(p[0]), y: y(p[1]) - 10, "text-anchor": "middle" }, p[2]);
+  });
+  el("rect", { x: x("2026-01-15") - 4.5, y: y(150000) - 4.5, width: 9, height: 9, fill: "var(--paper)", stroke: "var(--accent)", "stroke-width": 2 });
+  el("text", { x: x("2026-01-15") - 10, y: y(150000) + 4, "text-anchor": "end" }, "pads");
+  el("circle", { cx: x(now[0]), cy: y(now[1]), r: 6, fill: "var(--paper)", stroke: "var(--bad)", "stroke-width": 2.5 });
+  el("text", { x: x(now[0]) - 10, y: y(now[1]) - 12, "text-anchor": "end", fill: "var(--bad)" }, "now ≈160 000");
+  el("text", { x: (x("2026-02-20") + x(now[0])) / 2, y: H - B - 8, "text-anchor": "middle", fill: "var(--bad)" }, "missed");
+})();
+</script>
+</body>
+</html>
